@@ -1,0 +1,142 @@
+:root {
+    --itemMinimumOpacity: 0;
+    --fadeInDuration: 1.3s;
+    --fadeOutDuration: 1.3s;
+    --itemContent1BGcolor: rgb(248, 169, 23);
+    --itemContent2BGcolor: rgb(147, 228, 147);
+    --itemContent3BGcolor: lightblue;
+    --itemContent4BGcolor: rgb(207, 207, 207);
+    --itemContent5BGcolor: rgb(235, 235, 235);
+  }
+  
+  .item-img {
+    transition: transform 0.5s;
+    vertical-align: middle;
+  }
+  
+  .item-img:hover {
+    -ms-transform: scale(1.55);
+    /* IE 9 */
+    -webkit-transform: scale(1.55);
+    /* Safari 3-8 */
+    transform: scale(1.55);
+  }
+  
+  
+  .project {
+    transition: transform 0.5s;
+    vertical-align: middle;
+  }
+  
+  .project:hover {
+    -ms-transform: scale(1.13);
+    /* IE 9 */
+    -webkit-transform: scale(1.13);
+    /* Safari 3-8 */
+    transform: scale(1.13);
+  }
+  
+  .item {
+    border-radius: 5px;
+    padding: 0px 11px 0px 11px;
+    position: absolute;
+    opacity: var(--itemMinimumOpacity);
+    cursor: default;
+  }
+  
+  .item:hover {
+    -ms-transform: scale(1.35);
+    /* IE 9 */
+    -webkit-transform: scale(1.35);
+    /* Safari 3-8 */
+    transform: scale(1.35);
+  }
+  
+  .itemContent1 {
+    background-color: var(--itemContent1BGcolor) !important;
+    height: 55px;
+    z-index: 5;
+  }
+  
+  .itemContent2 {
+    background-color: var(--itemContent2BGcolor) !important;
+    z-index: 4;
+    padding: 0px 9px 0px 9px;
+  }
+  
+  .itemContent3 {
+    background-color: var(--itemContent3BGcolor) !important;
+    z-index: 3;
+    padding: 0px 6px 0px 6px;
+  }
+  
+  .itemContent4 {
+    background-color: var(--itemContent4BGcolor) !important;
+    z-index: 2;
+    padding: 0px 6px 0px 6px;
+  }
+  
+  .itemContent5 {
+    background-color: var(--itemContent5BGcolor) !important;
+    z-index: 1;
+    padding: 0px 5px 0px 5px;
+  }
+  
+  .fadeOut {
+    opacity: var(--itemMinimumOpacity);
+    -webkit-transition: opacity var(--fadeOutDuration) ease-out;
+    -moz-transition: opacity var(--fadeOutDuration) ease-out;
+    -ms-transition: opacity var(--fadeOutDuration) ease-out;
+    -o-transition: opacity var(--fadeOutDuration) ease-out;
+    transition: opacity var(--fadeOutDuration) ease-out;
+  }
+  
+  .fadeIn {
+    opacity: 1;
+    -webkit-transition: opacity var(--fadeInDuration) ease-out;
+    -moz-transition: opacity var(--fadeInDuration) ease-out;
+    -ms-transition: opacity var(--fadeInDuration) ease-out;
+    -o-transition: opacity var(--fadeInDuration) ease-out;
+    transition: opacity var(--fadeInDuration) ease-out;
+  }
+  
+  
+  
+  
+  .content-container{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 1.3s;
+    transform-style: preserve-3d;
+  }
+  
+  .content-container-front, .content-container-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+  }
+  
+  .content-container-back {
+    transform: rotateY(180deg);
+  }
+  
+  
+  
+  /* Works on Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(55, 55, 55, 0.4);
+  }
+  
+  /* Works on Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background-color: rgba(55, 55, 55, 0.4);
+    border-radius: 3px;
+  }

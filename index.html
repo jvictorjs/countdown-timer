@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+
+<head>
+    <title></title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.6.10/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <meta charset="UTF-8"> <!-- important to show special chars -->
+    <link rel="icon" type="image/png" href="counter.svg">
+    <link rel="stylesheet" href="index.css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+</head>
+
+<body>
+    <div id="app" style="display: none;">
+        <v-app>
+            <v-main id="main">
+                <v-container v-if="isLoading" class="align-center justify-center appContainer black" fluid fill-height>
+                    <v-sheet class="transparent" transition="fade-transition" width="182">
+                        <v-progress-linear indeterminate class="white" color="grey darken-3"></v-progress-linear>
+                    </v-sheet>
+                </v-container>
+                <v-container v-else class="px-5 py-0 grey lighten-2 d-flex flex-column align-center justify-space-between elevation-10 " fluid fill-height>
+                    <v-sheet class="transparent elevation-0" height="5%"> </v-sheet>
+                    <v-sheet :class="'pa-2 d-flex flex-column align-center  justify-center rounded-lg  elevation-0  transparent' + (isMobile ? '' : ' pa-0')" :width="isMobile ? '100%':'100%'"
+                        max-width="1080" :min-height="(this.$vuetify.breakpoint.width < 590 ? '360' : '400'  )" :max-height="this.$vuetify.breakpoint.height * 0.89">
+                        <v-sheet class=" pa-1 px-3 rounded-lg elevation-10 d-flex flex-column justify-space-between align-center " width="100%" height="100%" min-width="372" min-height="200"
+                            style="position: relative;" max-width="1080">
+                            <v-sheet class="mt-2 d-flex flex-row justify-center text-center text-h5 font-weight-bold" width="50%">
+                                <v-menu open-on-hover top offset-y :content-class="'pa-1 white'">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-sheet color="transparent elevation-0" dark v-bind="attrs" v-on="on">
+                                            <v-icon large class="" color="grey darken-1"> mdi-counter
+                                            </v-icon>
+                                            <span class="black--text">o dia tá chegando...</span>
+                                        </v-sheet>
+                                    </template>
+                                    <v-sheet class="px-5 rounded-lg transparent d-flex flex-column align-start justify-center" width="100%" height="100%">
+                                        <v-switch hide-details dense v-model="isShowSeconds" :label="`seconds`"></v-switch>
+                                        <v-switch hide-details dense v-model="isShowDays" :label="`days`"></v-switch>
+                                        <v-switch hide-details dense v-model="isShowSmallClock" :label="`small clock`"></v-switch>
+                                        <v-switch hide-details dense v-model="isVisisivleDayProgress3Bars" :label="`day progress 3 bars`"></v-switch>
+                                        <v-btn class="ma-5" color="grey lighten-2" @click="loadAllJSONDataStringedToImportExport();isVisibleAppDataDialog = true" small
+                                            :label="`ABRE`">Import/Export</v-btn>
+                                    </v-sheet>
+                                </v-menu>
+                            </v-sheet>
+                            <v-sheet class="pa-1 d-flex flex-wrap justify-space-around rounded-lg elevation-0 ">
+                                <v-sheet class="pa-0 elevation-4 rounded-lg pa-1 grey lighten-2 justify-center text-center" min-width="250" max-width="1000" width="100%">
+                                    <v-sheet class="d-flex flex-column justify-center align-center text-center rounded-lg transparent">
+                                        <v-menu top offset-y :content-class="'pa-1 white'" :close-on-content-click="false">
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-sheet color="px-2 transparent elevation-0" dark v-bind="attrs" v-on="on">
+                                                    <h2 class="my-1 black--text">
+                                                        {{date.toLocaleDateString('pt-BR',{dateStyle: 'full'}) }}
+                                                    </h2>
+                                                </v-sheet>
+                                            </template>
+                                            <v-sheet class="px-3 rounded-lg d-flex flex-row align-center justify-center" width="100%" height="100%">
+                                                <v-sheet width="66"> <v-text-field ref="yyyy" hide-details class="ma-0 pa-0" dense type="number" :value="date.getFullYear()" :width="100" width="100"
+                                                        @keydown.enter.prevent="setNewDateEnd">
+                                                    </v-text-field> </v-sheet>
+                                                <v-sheet width="40">
+                                                    <v-text-field ref="mm_0_11" hide-details class="ma-0 pa-0" dense type="number" :value="date.getMonth()+1" @keydown.enter.prevent="setNewDateEnd">
+                                                    </v-text-field> </v-sheet>
+                                                <v-sheet width="40"> <v-text-field ref="dd_1_31" hide-details class="ma-0 pa-0" dense type="number" :value="date.getDate()"
+                                                        @keydown.enter.prevent="setNewDateEnd">
+                                                    </v-text-field> </v-sheet>
+                                                <v-btn icon depressed class="pa-0 mx-3" color="grey darken-1" @click="setNewDateEnd" :disabled="isPomodoroTimerRunning">
+                                                    <v-icon class="mx-1 pa-0" color="grey darken-1">
+                                                        mdi-content-save
+                                                    </v-icon>
+                                                </v-btn>
+                                            </v-sheet>
+                                        </v-menu>
+                                        <v-sheet class="mb-1 d-flex flex-column transparent justify-center align-center " min-width="340" width="100%">
+                                            <v-sheet :class="'mt-1 d-flex flex-row transparent align-center text-center '+ (isVisiblePomodoroTimer ? 'justify-center' : ' justify-center ')">
+                                                <v-btn icon depressed class="pa-0 mx-1" color="grey darken-1" @click="isVisiblePomodoroTimer = !isVisiblePomodoroTimer"
+                                                    :disabled="isPomodoroTimerRunning">
+                                                    <v-icon class="mx-2 pa-0" color="grey darken-1">
+                                                        mdi-apple
+                                                    </v-icon>
+                                                </v-btn>
+                                                <v-sheet v-if="isVisiblePomodoroTimer" class="transparent" width="113">
+                                                    <v-select id="pomodoroMinutesSelect" :items="[
+                                                                {text:'1m',value:1},
+                                                                {text:'3m',value:3},
+                                                                {text:'5m',value:5},
+                                                                {text:'10m',value:10},
+                                                                {text:'15m',value:15},
+                                                                {text:'20m',value:20},
+                                                                {text:'25m',value:25},
+                                                                {text:'30m',value:30},
+                                                                {text:'45m',value:45},
+                                                                ]" v-model="pomodoroMinutesValue" :disabled="isPomodoroTimerRunning" hide-details rounded return-object dense filled></v-select>
+                                                </v-sheet>
+                                                <v-menu open-on-hover bottom offset-y :close-on-click="false" v-if="isVisiblePomodoroTimer">
+                                                    <template v-slot:activator="{ on, attrs }">
+                                                        <v-btn icon depressed class="pa-0 ml-2 " color="grey darken-1" @click="startPomodoroPause" :disabled="isPomodoroTimerRunning" v-bind="attrs"
+                                                            v-on="on">
+                                                            <v-icon>
+                                                                mdi-hand-front-right
+                                                            </v-icon>
+                                                        </v-btn>
+                                                    </template>
+                                                    <v-sheet v-if="isVisiblePomodoroTimer" class="pa-2 d-flex flex-column align-center justify-center rounded-lg">
+                                                        <span class="grey--text text--darken-1">Pausa</span>
+                                                        <v-radio-group hide-details class="ma-0 pa-0" dense v-model="pauseMinutesValue">
+                                                            <v-radio label="3m" color="grey darken-2" :value="3"></v-radio>
+                                                            <v-radio label="5m" color="grey darken-2" :value="5"></v-radio>
+                                                            <v-radio label="10m" color="grey darken-2" :value="10"></v-radio>
+                                                            <v-radio label="15m" color="grey darken-2" :value="15"></v-radio>
+                                                            <v-radio label="20m" color="grey darken-2" :value="20"></v-radio>
+                                                        </v-radio-group>
+                                                    </v-sheet>
+                                                </v-menu>
+                                                <v-menu bottom offset-y v-if="isVisiblePomodoroTimer" :close-on-content-click="false">
+                                                    <template v-slot:activator="{ on, attrs }">
+                                                        <v-btn icon depressed class="pa-0" color="grey darken-1" v-bind="attrs" v-on="on">
+                                                            <v-icon small>
+                                                                mdi-message-alert
+                                                            </v-icon>
+                                                        </v-btn>
+                                                    </template>
+                                                    <v-sheet v-if="isVisiblePomodoroTimer" class="pa-5 pt-7 rounded-lg" min-width="500">
+                                                        <v-text-field autofocus hide-details class="ma-0 pa-0" dense v-model="dialogTextAlert" label="mensagem do pomodoro (mostrar no alerta)">
+                                                        </v-text-field>
+                                                    </v-sheet>
+                                                </v-menu>
+                                                <v-btn icon depressed class="pa-0" color="grey darken-1" v-if="isVisiblePomodoroTimer" @click="isVisiblePomodoroHistoryDialog = true">
+                                                    <v-icon>
+                                                        mdi-history
+                                                    </v-icon>
+                                                </v-btn>
+                                            </v-sheet>
+                                        </v-sheet>
+                                    </v-sheet>
+                                    <v-tooltip right v-if="isVisiblePomodoroTimer">
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-sheet class="mb-1 d-flex justify-center align-center transparent" v-bind="attrs" v-on="on">
+                                                <v-sheet class="d-flex align-center justify-center transparent" width="100" height="36">
+                                                    <v-sheet class="transparent" v-if="isPomodoroTimerRunning">
+                                                        <b class="grey--text text--darken-1">{{nextDatePomodoroFinishes_countDownToShow}}</b>
+                                                    </v-sheet>
+                                                    <v-btn v-else icon depressed class="mx-2 pa-0" color="grey darken-1"
+                                                        @click="startPomodoro(pomodoroMinutesValue.value, 'Concluiu a tarefinha?', true)" :disabled="isPomodoroTimerRunning">
+                                                        <v-icon>
+                                                            mdi-play
+                                                        </v-icon>
+                                                    </v-btn>
+                                                </v-sheet>
+                                                <v-sheet class="d-flex align-center justify-center transparent" height="13" width="100%">
+                                                    <v-progress-linear :color="isPomodoroPauseRunning ? 'primary' : 'grey'"
+                                                        :value="(pomodoroProgressValue / (pomodoroRunningMinutesValue * 60 * 10)) * 100"></v-progress-linear>
+                                                </v-sheet>
+                                                <v-sheet class="transparent" width="100">
+                                                    <v-btn icon depressed class="mx-2 pa-0" color="grey darken-1" small @click="reloadPomodoro" :disabled="!isPomodoroTimerRunning">
+                                                        <v-icon> mdi-stop </v-icon>
+                                                    </v-btn>
+                                                </v-sheet>
+                                            </v-sheet>
+                                        </template>
+                                        <v-sheet class="transparent" dark>
+                                            Pomodoros hoje: <b>{{totalPomodorosHoje}}</b>
+                                            <br />
+                                            Tempo total: <b>{{Math.round(totalPomodorosHoje_minutos)}}min</b>
+                                            <br />
+                                            Duração Pausa: {{pauseMinutesValue}}min
+                                        </v-sheet>
+                                    </v-tooltip>
+                                    <v-sheet v-if="dialogTextAlert.length > 0" class="pa-1 transparent rounded-lg text-center d-flex text-center align-center justify-center" max-width="500">
+                                        <h4 class="mb-3 px-2 primary lighten-3 rounded-lg font-weight-medium">
+                                            {{dialogTextAlert}}</h4>
+                                    </v-sheet>
+                                    <v-tooltip right>
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-sheet class="px-5 mb-2 d-flex justify-center elevation-0 transparent" v-bind="attrs" v-on="on"
+                                                :style="' line-height: 100%; ' + ($vuetify.breakpoint.width < 590 || isShowSmallClock ? ' font-size: 36px; ' : ' font-size: 55px; '  )">
+                                                <v-sheet class="transparent elevation-0 font-weight-bold text-truncate" @click="isShowDays = !isShowDays">
+                                                    {{isShowDays ? timeToDate_toShow :
+                                                    timeToDate_toShow_hours}}
+                                                </v-sheet>
+                                                <v-sheet class="transparent justify-center align-center elevation-0 font-weight-bold" @click="isShowSeconds = !isShowSeconds">
+                                                    {{timeToDate_toShow_onlyMinute}}
+                                                </v-sheet>
+                                                <v-sheet class="transparent justify-center align-center elevation-0 font-weight-bold" @click="isShowSeconds = !isShowSeconds">
+                                                    {{isShowSeconds ? timeToDate_toShow_onlySeconds
+                                                    :
+                                                    ''}}
+                                                </v-sheet>
+                                            </v-sheet>
+                                        </template>
+                                        <v-sheet class="transparent" dark>
+                                            <h1> {{horaAgoraToShow}} </h1>
+                                        </v-sheet>
+                                    </v-tooltip>
+                                </v-sheet>
+                            </v-sheet>
+                            <v-sheet class="mb-2 mt-3 pa-1 pb-1 d-flex flex-column grey lighten-2 rounded-lg elevation-3" width="100%" max-width="720">
+                                <v-sheet class="pa-2 d-flex flex-column rounded-lg">
+                                    <v-sheet v-if="isVisisivleDayProgress3Bars" class="pa-1 d-flex flex-row align-center justify-center transparent">
+
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-sheet class="mx-2 d-flex align-center justify-center transparent" width="100%" v-bind="attrs" v-on="on">
+                                                    <v-progress-linear :color="'grey lighten-0'" rounded height="5"
+                                                        :value="((totalMilisecondsOfTheDay - 8 * 60 * 60 * 1000) / (4 * 60 * 60 * 1000)) * 100"></v-progress-linear>
+                                                </v-sheet>
+                                            </template>
+                                            <v-sheet class="transparent" dark>
+                                                <h3> 8:00 - 12:00</h3>
+                                            </v-sheet>
+                                        </v-tooltip>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-sheet class="mx-2 d-flex align-center justify-center transparent" width="100%" v-bind="attrs" v-on="on">
+                                                    <v-progress-linear :color="'grey lighten-0'" rounded height="5"
+                                                        :value="((totalMilisecondsOfTheDay - 13 * 60 * 60 * 1000) / (4 * 60 * 60 * 1000)) * 100"></v-progress-linear>
+                                                </v-sheet>
+                                            </template>
+                                            <v-sheet class="transparent" dark>
+                                                <h3> 13:00 - 17:00</h3>
+                                            </v-sheet>
+                                        </v-tooltip>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-sheet class="mx-2 d-flex align-center justify-center transparent" width="100%" v-bind="attrs" v-on="on">
+                                                    <v-progress-linear :color="'grey lighten-0'" rounded height="5"
+                                                        :value="((totalMilisecondsOfTheDay - 19 * 60 * 60 * 1000) / (4 * 60 * 60 * 1000)) * 100"></v-progress-linear>
+                                                </v-sheet>
+                                            </template>
+                                            <v-sheet class="transparent" dark>
+                                                <h3> 19:00 - 23:00</h3>
+                                            </v-sheet>
+                                        </v-tooltip>
+                                    </v-sheet>
+                                    <v-sheet class="pa-1 d-flex flex-row align-center justify-center transparent">
+                                        tarefas do dia
+                                        <v-btn icon depressed class="mx-3 pa-0" color="grey darken-1" small @click="addNewTask()" :disabled="tasks.length > 9">
+                                            <v-icon> mdi-plus-circle </v-icon>
+                                        </v-btn>
+                                        <v-btn icon depressed class="ml-n2 pa-0" color="grey darken-1" @click="isVisiblePomodoroBacklogDialog = true">
+                                            <v-icon>
+                                                mdi-calendar-month
+                                            </v-icon>
+                                        </v-btn>
+                                    </v-sheet>
+                                    <v-sheet v-for="(task,i) in tasks" :key="i + '_' +task.title" class="d-flex flex-column">
+                                        <v-sheet class="d-flex flex-row">
+                                            <v-menu offset-y nudge-top="102" nudge-left="6" open-on-hover close-on-click>
+                                                <template v-slot:activator="{ on, attrs }">
+                                                    <v-sheet color="transparent elevation-0" dark v-bind="attrs" v-on="on">
+                                                        <v-icon class="mt-2 mr-1" style="cursor: pointer;" :color="(task.isDone ? 'green darken-1' : 'grey') ">
+                                                            {{task.isDone ? 'mdi-check' : 'mdi-minus'}}
+                                                        </v-icon>
+                                                    </v-sheet>
+                                                </template>
+                                                <v-sheet class="d-flex flex-column rounded grey lighten-4">
+                                                    <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="moveTaskToTop(tasks, i)" :disabled="(i < 2)">
+                                                        <v-icon> mdi-chevron-double-up </v-icon>
+                                                    </v-btn>
+                                                    <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="moveTaskUp(tasks, i)" :disabled="(i < 1)">
+                                                        <v-icon> mdi-chevron-up </v-icon>
+                                                    </v-btn>
+                                                    <v-btn icon depressed class="pa-0 ma-0" :color="(task.isDone ? 'green darken-1' : 'grey') " @click="swtichTaskIsDone(i)">
+                                                        <v-icon> {{task.isDone ? 'mdi-check' : 'mdi-minus'}} </v-icon>
+                                                    </v-btn>
+                                                    <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="moveTaskDown(tasks, i)" :disabled="(i === tasks.length-1)">
+                                                        <v-icon> mdi-chevron-down </v-icon>
+                                                    </v-btn>
+                                                    <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="dialogTextAlert = task.title; isVisiblePomodoroTimer = true"
+                                                        :disabled="task.isDone">
+                                                        <v-icon> mdi-comment-arrow-right </v-icon>
+                                                    </v-btn>
+                                                    <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="sendTaskToBacklog(i)" :disabled="task.isDone">
+                                                        <v-icon> mdi-calendar-export </v-icon>
+                                                    </v-btn>
+                                                </v-sheet>
+                                            </v-menu>
+                                            <v-sheet width="100%">
+                                                <v-text-field v-model="task.title" dense hide-details single-line autofocus :disabled="task.isDone"
+                                                    @keydown.enter.prevent="dialogTextAlert = task.title; isVisiblePomodoroTimer = true" @keydown.esc="sendTaskToBacklog(i);"
+                                                    @keydown.home.prevent="moveTaskToTop(tasks, i)" @keydown.end.prevent="moveTaskToBottom(tasks, i)">
+                                                </v-text-field>
+                                            </v-sheet>
+                                            <v-sheet>
+                                                <v-menu bottom offset-y nudge-top="23" nudge-left="5">
+                                                    <template v-slot:activator="{ on, attrs }">
+                                                        <v-sheet color="transparent elevation-0" dark v-bind="attrs" v-on="on">
+                                                            <v-icon small class="ml-1 mt-3" color="grey darken-1">
+                                                                mdi-trash-can
+                                                            </v-icon>
+                                                        </v-sheet>
+                                                    </template>
+                                                    <v-sheet class="pa-1 rounded-lg">
+                                                        <v-icon class="" color="red darken-1" @click="deleteTask(i)">
+                                                            mdi-trash-can
+                                                        </v-icon>
+                                                    </v-sheet>
+                                                </v-menu>
+                                            </v-sheet>
+                                        </v-sheet>
+                                    </v-sheet>
+                                </v-sheet>
+                            </v-sheet>
+                        </v-sheet>
+                    </v-sheet>
+                    <v-sheet class="d-flex flex-column justify-end transparent elevation-0" height="5%" max-width="1200">
+                        <v-hover v-slot="{ hover }">
+                            <v-sheet class="rounded-t-lg elevation-5">
+                                <v-sheet v-if="hover" class="px-3 pt-2 text-wrap text-center text-caption text--secondary transparent">
+                                    Responsive web page built from scratch with <b>VUE.JS</b>, using
+                                    <b>JAVASCRIPT</b>,
+                                    <b>HTML</b> and <b>CSS</b>.
+                                    In addition, to faster and beauty design I used <b>VUETIFY</b> UI library and
+                                    some
+                                    <b>MATERIAL DESIGN ICONS</b>.
+                                    Hosted in a Linux <b>UBUNTU</b> dedicated server at <b>DIGITALOCEAN</b> cloud
+                                    infrastructure. Version control by
+                                    <b>GIT</b> and <b>GITHUB</b>. Reverse proxy with <b>NGINX</b>. <b>SSL</b>
+                                    certification with <b>CERTBOT</b> |
+                                    screen: {{$vuetify.breakpoint.width}}x{{$vuetify.breakpoint.height}} | isMobile:
+                                    {{isMobileLastStatus}}
+                                </v-sheet>
+                                <v-sheet class="pa-3 transparent">
+                                    <v-sheet class="text-caption text-center"> 2024 <a href="https://github.com/jvictorjs" target="_blank">@jvictorjs</a>
+                                    </v-sheet>
+                                </v-sheet>
+                            </v-sheet>
+                        </v-hover>
+                    </v-sheet>
+                </v-container>
+                <v-dialog v-model="isVisiblePomodoroEndDialog" width="500" persistent>
+                    <v-card>
+                        <v-card-title class="text-h5 grey lighten-2">
+                            tempo terminou
+                        </v-card-title>
+                        <v-card-text class="pt-6">
+                            <h3>{{dialogText}}</h3>
+                        </v-card-text>
+                        <v-card-text v-if="dialogTextAlert.length > 0">
+                            <v-sheet class="pa-5 yellow lighten-3 rounded-xl">
+                                <h3>{{dialogTextAlert}}</h3>
+                            </v-sheet>
+                        </v-card-text>
+                        <v-divider></v-divider>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="grey darken-2" text @click="isVisiblePomodoroEndDialog = false; startPomodoro(pomodoroMinutesValue.value, this.dialogTextAlert, true);">
+                                Repetir mensagem e reiniciar
+                            </v-btn>
+                            <v-btn color="primary" text @click="isVisiblePomodoroEndDialog = false; dialogTextAlert = '';">
+                                Ok
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <v-dialog v-model="isVisiblePomodoroHistoryDialog" width="800" scrollable>
+                    <v-card>
+                        <v-card-title class="ma-0 pa-2 text-h6 grey lighten-2">
+                            ultimos pomodoros
+                        </v-card-title>
+                        <v-card-text>
+                            <v-sheet class="mt-5 mb-2 transparent text-center">
+                                Pomodoros hoje: <b>{{totalPomodorosHoje}}</b>
+                                <br />
+                                Tempo total: <b>{{Math.round(totalPomodorosHoje_minutos)}}min</b>
+                                <br />
+                                Duração Pausa: {{pauseMinutesValue}}min
+                            </v-sheet>
+                            <v-sheet class="d-flex justify-center align-center" width="100%">
+                                <v-sheet class="pa-2 mb-5 grey lighten-1 rounded-xl d-flex flex-column justify-center align-center" max-width="360">
+                                    <v-sheet class="ma-1 d-flex flex-row align-center transparent" v-for="(item, i) in lastDaysPomodorosSummary.slice().reverse()"
+                                        :key="'itemPomodoroSummary' + '_' + i">
+                                        <v-sheet class="mx-5 rounded-lg elevation-2 text-center" width="36">{{i+1}}</v-sheet>
+                                        <v-sheet :class="'mx-3 rounded-lg elevation-2 text-center '" width="155">{{item.day}}</v-sheet>
+                                        <v-sheet class="mx-3 px-3 rounded-lg elevation-2 text-end" width="75">{{item.totalMinutes}}m</v-sheet>
+                                    </v-sheet>
+                                </v-sheet>
+                            </v-sheet>
+                            <v-sheet class="pa-5 grey lighten-3 rounded-xl">
+                                <v-sheet class="ma-1 d-flex flex-row align-center transparent" v-for="(pomo, i) in pomodoros.finished.slice().reverse()" :key="pomo.dateFinished + '_' + i">
+                                    <v-sheet class="mx-3 rounded-lg elevation-2 text-center" width="30">{{i+1}}</v-sheet>
+                                    <v-sheet :class="'mx-3 rounded-lg elevation-2 text-center ' + (new Date().getDate() === new Date(pomo.dateFinished).getDate() ? ' grey lighten-2 ' : '' )"
+                                        width="155">{{new
+                                        Date(pomo.dateFinished).toString().substring(3,10)}} {{new
+                                        Date(pomo.dateFinished).toString().substring(15,21)}}</v-sheet>
+                                    <v-sheet class="mx-3 rounded-lg elevation-2 text-center" width="55">{{pomo.durationMinutes}}m</v-sheet>
+                                    <v-sheet class="mx-3 rounded-lg elevation-2 px-2" width="360">{{pomo.dialogTextAlert}}</v-sheet>
+                                    <v-sheet class="mx-3 rounded-lg elevation-2 px-2" width="30">
+                                        <v-sheet>
+                                            <v-menu bottom offset-y nudge-top="23" nudge-left="5">
+                                                <template v-slot:activator="{ on, attrs }">
+                                                    <v-sheet color="transparent elevation-0" dark v-bind="attrs" v-on="on">
+                                                        <v-icon small class="" color="grey darken-1">
+                                                            mdi-trash-can
+                                                        </v-icon>
+                                                    </v-sheet>
+                                                </template>
+                                                <v-sheet class="px-1 rounded-lg">
+                                                    <v-icon small class="" color="red darken-1" @click="deletePomodoroFromHistory(pomodoros.finished.length -1 - i)">
+                                                        mdi-trash-can
+                                                    </v-icon>
+                                                </v-sheet>
+                                            </v-menu>
+                                        </v-sheet></v-sheet>
+                                </v-sheet>
+                            </v-sheet>
+                        </v-card-text>
+                        <v-divider></v-divider>
+                        <v-card-actions class="pa-1">
+                            <v-spacer></v-spacer>
+                            <v-btn color="primary" text @click="isVisiblePomodoroHistoryDialog = false;">
+                                Ok
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <v-dialog v-model="isVisiblePomodoroBacklogDialog" width="800" scrollable>
+                    <v-card>
+                        <v-card-title class="text-h5 grey lighten-2">
+                            backlog de tarefas
+                        </v-card-title>
+                        <v-card-text>
+                            <v-sheet class="mt-5 pa-5 grey lighten-3 rounded-xl">
+                                <v-sheet class="mb-2 mt-3 pa-1 pb-1 d-flex flex-column grey lighten-2 rounded-lg elevation-3" width="100%" max-width="720">
+                                    <v-sheet class="pa-2 d-flex flex-column rounded-lg">
+                                        <v-sheet class="pa-1 d-flex flex-row align-center justify-center transparent">
+                                            backlog de tarefas
+                                            <v-btn icon depressed class="mx-2 pa-0" color="grey darken-1" small @click="addNewBacklogTask()">
+                                                <v-icon> mdi-plus-circle </v-icon>
+                                            </v-btn>
+                                        </v-sheet>
+                                        <v-sheet v-for="(task,i) in tasksBacklog" :key="i + '_backlog_' +task.title" class="d-flex flex-column">
+                                            <v-sheet class="d-flex flex-row">
+                                                <v-menu offset-y nudge-top="102" nudge-left="6" open-on-hover close-on-click>
+                                                    <template v-slot:activator="{ on, attrs }">
+                                                        <v-sheet color="transparent elevation-0" dark v-bind="attrs" v-on="on">
+                                                            <v-icon class="mt-2 mr-1" style="cursor: pointer;" color="grey">
+                                                                {{'mdi-calendar-import'}}
+                                                            </v-icon>
+                                                        </v-sheet>
+                                                    </template>
+                                                    <v-sheet class="d-flex flex-column rounded grey lighten-4">
+                                                        <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="moveTaskToTop(tasksBacklog, i)" :disabled="(i < 2)">
+                                                            <v-icon> mdi-chevron-double-up </v-icon>
+                                                        </v-btn>
+                                                        <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="moveTaskUp(tasksBacklog, i)" :disabled="(i < 1)">
+                                                            <v-icon> mdi-chevron-up </v-icon>
+                                                        </v-btn>
+                                                        <v-btn icon depressed class="pa-0 ma-0" :color="'grey'" @click="sendBacklogTask(i)">
+                                                            <v-icon> {{'mdi-calendar-import'}} </v-icon>
+                                                        </v-btn>
+                                                        <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="moveTaskDown(tasksBacklog, i)" :disabled="(i === tasksBacklog.length-1)">
+                                                            <v-icon> mdi-chevron-down </v-icon>
+                                                        </v-btn>
+                                                    </v-sheet>
+                                                </v-menu>
+                                                <v-sheet width="100%">
+                                                    <v-text-field v-model="task.title" dense hide-details single-line autofocus :disabled="task.isDone" @keydown.enter.prevent="sendBacklogTask(i)"
+                                                        @keydown.home.prevent="moveTaskToTop(tasksBacklog, i)" @keydown.end.prevent="moveTaskToBottom(tasksBacklog, i)">
+                                                    </v-text-field>
+                                                </v-sheet>
+                                                <v-sheet>
+                                                    <v-menu bottom offset-y nudge-top="23" nudge-left="5">
+                                                        <template v-slot:activator="{ on, attrs }">
+                                                            <v-sheet color="transparent elevation-0" dark v-bind="attrs" v-on="on">
+                                                                <v-icon small class="ml-1 mt-3" color="grey darken-1">
+                                                                    mdi-trash-can
+                                                                </v-icon>
+                                                            </v-sheet>
+                                                        </template>
+                                                        <v-sheet class="pa-1 rounded-lg">
+                                                            <v-icon class="" color="red darken-1" @click="deleteBacklogTask(i)">
+                                                                mdi-trash-can
+                                                            </v-icon>
+                                                        </v-sheet>
+                                                    </v-menu>
+                                                </v-sheet>
+                                            </v-sheet>
+                                        </v-sheet>
+                                    </v-sheet>
+                                </v-sheet>
+                            </v-sheet>
+                        </v-card-text>
+                        <v-divider></v-divider>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="primary" text @click="isVisiblePomodoroBacklogDialog = false;">
+                                Ok
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <v-dialog v-model="isVisibleAppDataDialog" width="800" scrollable>
+                    <v-card>
+                        <v-card-title class="text-h5 grey lighten-2">
+                            data JSON export/import
+                            <v-sheet class="pa-2 d-flex flex-row align-center justify-center transparent">
+                                <v-btn icon depressed class="pa-0 ma-0" color="grey darken-1" @click="copyTextToClipboard(allJSONDataStringedToImportExport)">
+                                    <v-icon> mdi-content-copy </v-icon>
+                                </v-btn>
+                                <v-btn class="mx-3" color="grey darken-2" dark @click="downloadJSON()" small>
+                                    EXPORT
+                                    <v-icon small color="white lighten-1">mdi-download</v-icon>
+                                </v-btn>
+                                <v-btn class="mx-3" color="grey darken-2" dark @click="importAllJSONData()" small>
+                                    IMPORT
+                                    <v-icon small color="white lighten-1">mdi-import</v-icon>
+                                </v-btn>
+                            </v-sheet>
+                        </v-card-title>
+                        <v-card-text>
+                            <v-sheet class="mb-2 mt-3 pa-1 pb-1 d-flex flex-column grey lighten-2 rounded-lg elevation-3" width="100%" max-width="720">
+                                <v-sheet class="pa-2 d-flex flex-column rounded-lg">
+
+                                    <v-textarea solo v-model="allJSONDataStringedToImportExport" auto-grow hide-details>
+
+                                    </v-textarea>
+                                </v-sheet>
+                            </v-sheet>
+                        </v-card-text>
+                        <v-divider></v-divider>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="primary" text @click="isVisibleAppDataDialog = false;">
+                                Ok
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+            </v-main>
+        </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.6.10/dist/vuetify.js"></script>
+    <script type="module">
+
+        new Vue({
+            el: '#app',
+            vuetify: new Vuetify(),
+
+            data() {
+                return {
+                    pageTitle: 'Aprovação 2024',// TODO inserir nome do app aqui e no <title></title>
+                    devSettings: {
+                        isProductionMode: true,
+                        isShowUsefulLinks: false,
+                    },
+                    isMobileLastStatus: true,
+                    isLoading: true,
+                    minimumScreenWidth: 500,
+                    minimumScreenHeight: 500,
+                    appName: 'BACEN',// TODO inserir nome do app aqui
+                    date: new Date(2024, 4, 19),// TODO inserir a data aqui
+                    now: new Date(),
+                    timeToDate: 0,
+                    timeToDate_toShow: 0,
+                    timeToDate_toShow_onlyMinute: 0,
+                    timeToDate_toShow_onlySeconds: 0,
+                    timeToDate_toShow_hours: 0,
+                    isShowSmallClock: false,
+                    isShowSeconds: true,
+                    isShowDays: true,
+                    isVisisivleDayProgress3Bars: true,
+                    tasks: [{ title: 'exemplo de tarefa finalizada', isDone: true, }, { title: 'exemplo de tarefa', isDone: false }],
+                    isVisiblePomodoroTimer: false,
+                    isPomodoroTimerRunning: false,
+                    pomodoroProgressValue: 0,
+                    pomodoroMinutesValue: { text: '25m', value: 25 },
+                    isVisiblePomodoroEndDialog: false, // TODO set false when deploys
+                    isVisiblePomodoroHistoryDialog: false, // TODO set false when deploys
+                    isVisiblePomodoroBacklogDialog: false, // TODO set false when deploys
+                    isVisibleAppDataDialog: false, // TODO set false when deploys
+                    dialogText: '',
+                    dialogTextAlert: '',
+                    pomodoros: { dateEnd: new Date(2024, 4, 19), finished: [{ dateFinished: new Date(2024, 2, 21), durationMinutes: 0, dialogTextAlert: '' }] }, // pomodoro sample
+                    lastTimePomodoroStarted: 0,
+                    pomodoroFinishTimeoutID: null,
+                    horaAgoraToShow: new Date().toString().substring(16, 24),
+                    isPomodoroPauseRunning: false,
+                    pauseMinutesValue: 5,
+                    pomodoroRunningMinutesValue: 25,
+                    totalPomodorosHoje: 0,
+                    totalPomodorosHoje_minutos: 0,
+                    nextDatePomodoroFinishes: new Date(),
+                    nextDatePomodoroFinishes_countDownToShow: '',
+                    tasksBacklog: [{ title: 'exemplo de tarefa do backlog', isDone: false, }, { title: 'exemplo de tarefa do backlog 2', isDone: false }],
+                    lastDaysPomodorosSummary: [],
+                    totalMilisecondsOfTheDay: 0,
+                    allJSONDataStringedToImportExport: '',
+                }
+            },
+            created() {
+                console.log('created ' + new Date());
+                document.title = this.pageTitle;
+            },
+            mounted() {
+                console.log('mounted ' + new Date())
+                setTimeout(() => {
+                    document.querySelector('#app').style.display = 'inline'
+                    setTimeout(() => {
+                        this.isLoading = false
+                    }, 500);
+                }, 300);
+                setInterval(() => {
+                    this.calculateDates();
+                }, 250);
+                this.loadDataFromBrowserLocalStorage();
+                document.title = this.pageTitle;
+            },
+            watch: {
+                // whenever newIsMobileLastStatus changes, this function will run
+                isMobileLastStatus(newIsMobileLastStatus, oldIsMobileLastStatus) {
+                    console.log('isMobile changed to', newIsMobileLastStatus)
+                },
+                tasks: {
+                    handler: function (tasks_newValue, oldVal) {
+                        //console.log('tasks_newValue = ' + JSON.stringify(tasks_newValue))
+                        this.tasksChanged();
+                    },
+                    deep: true
+                },
+                tasksBacklog: {
+                    handler: function (tasks_newValue, oldVal) {
+                        //console.log('backlogTasks_newValue = ' + JSON.stringify(tasks_newValue))
+                        this.backlogTasksChanged();
+                    },
+                    deep: true
+                },
+                pomodoros: {
+                    handler: function (tasks_newValue, oldVal) {
+                        this.loadLastDaysPomodorosSummary();
+                    },
+                    deep: true
+                }
+            },
+            computed: {
+                isMobile() {
+                    console.log('isMobile computed = ' + this.$vuetify.breakpoint.width + 'x' + this.$vuetify.breakpoint.height)
+                    const isCurrentMobile = this.$vuetify.breakpoint.width < this.minimumScreenWidth || this.$vuetify.breakpoint.height < this.minimumScreenHeight;
+                    this.isMobileLastStatus = isCurrentMobile
+                    return isCurrentMobile
+                }
+            },
+            methods: {
+                calculateDates() { //2024mar
+                    this.timeToDate = this.date.getTime() - new Date().getTime();
+                    this.timeToDate += 1000; // aplicar correcao de 1 segundo para o relógio ficar OK, por causa dos arredondamentos com floor, vai sempre jogar pra baixo.
+                    let timeToDate_d = this.timeToDate / 1000 / 60 / 60 / 24;
+                    let timeToDate_d_toShow = Math.floor(timeToDate_d);
+                    let timeToDate_h = (timeToDate_d - timeToDate_d_toShow);
+                    let timeToDate_m = timeToDate_h * 24 % 1 * 60;
+                    let timeToDate_m_toShow = Math.floor(timeToDate_m);
+                    let timeToDate_s = timeToDate_m - timeToDate_m_toShow
+                    timeToDate_s = timeToDate_s * 60
+                    let timeToDate_h_toShow = Math.floor(timeToDate_h * 24);
+                    let timeToDate_s_toShow = Math.floor(timeToDate_s);
+                    timeToDate_m_toShow = timeToDate_m_toShow < 10 ? '0' + timeToDate_m_toShow : timeToDate_m_toShow;
+                    timeToDate_h_toShow = timeToDate_h_toShow < 10 ? '0' + timeToDate_h_toShow : timeToDate_h_toShow
+                    timeToDate_s_toShow = timeToDate_s_toShow < 10 ? '0' + timeToDate_s_toShow : timeToDate_s_toShow;
+                    this.timeToDate_toShow = timeToDate_d_toShow + 'd ' + timeToDate_h_toShow
+                    this.timeToDate_toShow_onlyMinute = ':' + timeToDate_m_toShow;
+                    this.timeToDate_toShow_onlySeconds = ':' + timeToDate_s_toShow + '';
+                    this.timeToDate_toShow_hours = this.timeToDate_toShow.substring(this.timeToDate_toShow.indexOf(':') + 1,)
+                    this.timeToDate_toShow_hours = (Math.floor(timeToDate_d * 24) + Number(timeToDate_h_toShow))
+                    this.horaAgoraToShow = new Date().toString().substring(16, 24)
+                    this.totalMilisecondsOfTheDay = new Date().getHours() * 1000 * 60 * 60 + new Date().getMinutes() * 1000 * 60
+                    if (this.isPomodoroTimerRunning) {
+                        this.pomodoroProgressValue = (new Date().getTime() - this.lastTimePomodoroStarted) / 100;
+                        // calculating the time left to finish pomodoro:
+                        let pomoTimeToDate = this.nextDatePomodoroFinishes.getTime() - new Date().getTime();
+                        pomoTimeToDate += 1000; // aplicar correcao de 1 segundo para o relógio ficar OK, por causa dos arredondamentos com floor, vai sempre jogar pra baixo.
+                        timeToDate_d = pomoTimeToDate / 1000 / 60 / 60 / 24;
+                        timeToDate_d_toShow = Math.floor(timeToDate_d);
+                        timeToDate_h = (timeToDate_d - timeToDate_d_toShow);
+                        timeToDate_m = timeToDate_h * 24 % 1 * 60;
+                        timeToDate_m_toShow = Math.floor(timeToDate_m);
+                        timeToDate_s = timeToDate_m - timeToDate_m_toShow
+                        timeToDate_s = timeToDate_s * 60
+                        timeToDate_h_toShow = Math.floor(timeToDate_h * 24);
+                        timeToDate_s_toShow = Math.floor(timeToDate_s);
+                        timeToDate_m_toShow = timeToDate_m_toShow < 10 ? '0' + timeToDate_m_toShow : timeToDate_m_toShow;
+                        timeToDate_h_toShow = timeToDate_h_toShow < 10 ? '0' + timeToDate_h_toShow : timeToDate_h_toShow
+                        timeToDate_s_toShow = timeToDate_s_toShow < 10 ? '0' + timeToDate_s_toShow : timeToDate_s_toShow;
+                        let pomoTimeToDate_toShow = timeToDate_d_toShow + 'd ' + timeToDate_h_toShow
+                        let pomoTimeToDate_toShow_onlyMinute = '' + timeToDate_m_toShow;
+                        let pomoTimeToDate_toShow_onlySeconds = ':' + timeToDate_s_toShow + '';
+                        this.nextDatePomodoroFinishes_countDownToShow = pomoTimeToDate_toShow_onlyMinute + pomoTimeToDate_toShow_onlySeconds
+                        document.title = (this.isPomodoroPauseRunning) ? ('PAUSA (' + this.nextDatePomodoroFinishes_countDownToShow + ')') : this.nextDatePomodoroFinishes_countDownToShow;
+                    } else {
+                        document.title = this.pageTitle;
+                    }
+                    this.totalPomodorosHoje = this.pomodoros.finished.filter(item => new Date(item.dateFinished).getDate() === this.now.getDate()).length
+                    this.totalPomodorosHoje_minutos = this.pomodoros.finished.filter(item => new Date(item.dateFinished).getDate() === this.now.getDate()).map(item => item.durationMinutes).reduce((a, b) => a + b, 0)
+
+                },
+                loadDataFromBrowserLocalStorage() { // 2024mar
+                    // STACKOVERFLOW https://br.vuejs.org/v2/cookbook/client-side-storage.html
+                    if (localStorage['countdownDateAppWithTaskList_' + this.appName]) {
+                        this.tasks = JSON.parse(localStorage['countdownDateAppWithTaskList_' + this.appName]);
+                    } else {
+                        localStorage['countdownDateAppWithTaskList_' + this.appName] = JSON.stringify(this.tasks);
+                    }
+                    if (localStorage['countdownDateAppWithTaskList_backlog_' + this.appName]) {
+                        this.tasksBacklog = JSON.parse(localStorage['countdownDateAppWithTaskList_backlog_' + this.appName]);
+                    } else {
+                        localStorage['countdownDateAppWithTaskList_backlog_' + this.appName] = JSON.stringify(this.tasksBacklog);
+                    }
+                    if (localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros']) {
+                        this.pomodoros = JSON.parse(localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros']);
+                    } else {
+                        localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros'] = JSON.stringify(this.pomodoros);
+                    }
+                    if (this.pomodoros.dateEnd) {
+                        this.date = new Date(this.pomodoros.dateEnd);
+                        console.log('this.date = ', this.date)
+                    }
+                },
+                tasksChanged() {
+                    localStorage['countdownDateAppWithTaskList_' + this.appName] = JSON.stringify(this.tasks);
+                },
+                addNewTask() {
+                    console.log('addNewTask()')
+                    this.tasks.push({ title: '', isDone: false });
+                },
+                deleteTask(index) {
+                    console.log('deleteTask(' + index + ')')
+                    this.tasks.splice(index, 1)
+                },
+                swtichTaskIsDone(index) {
+                    this.tasks[index].isDone = !this.tasks[index].isDone;
+                    if (this.tasks[index].isDone) this.playNotificationSound();
+                },
+                backlogTasksChanged() {
+                    localStorage['countdownDateAppWithTaskList_backlog_' + this.appName] = JSON.stringify(this.tasksBacklog);
+                },
+                addNewBacklogTask() {
+                    console.log('addNewBacklogTask()')
+                    this.tasksBacklog.push({ title: '', isDone: false });
+                },
+                deleteBacklogTask(index) {
+                    console.log('deleteBacklogTask(' + index + ')')
+                    this.tasksBacklog.splice(index, 1)
+                },
+                sendBacklogTask(index) {
+                    console.log('sendBacklogTask(' + index + ')')
+                    this.tasks = this.tasks.concat(this.tasksBacklog.splice(index, 1))
+                },
+                sendTaskToBacklog(index) {
+                    console.log('sendTaskToBacklog(' + index + ')')
+                    this.tasksBacklog = this.tasksBacklog.concat(this.tasks.splice(index, 1))
+                },
+                playNotificationSound() {
+                    // TODO change color of TODO TREE HIGHLIGHTER STACKOVERFLOW diffent of TODO
+                    // STACKOVERFLOW Chrome requires the user to interact with the page so can play sounds => https://developer.chrome.com/blog/autoplay/
+                    // TODO turnaround solution => start muted and 1ms after set the volume to 1 ??? or insert an wellcome alert (welcome to telegram clone) with overlay to hide background, so user will click ok and open the page
+                    // <audio preload="auto" src="./audio/telegram-notification.mp3" ref="notificationAudio"></audio>
+                    try {
+                        const sound = new Audio('air_plane_ding_dong_sound_effect.mp3')
+                        //console.log(sound)
+                        // STACKOVERFLOW https://stackoverflow.com/questions/40276718/how-to-handle-uncaught-in-promise-domexception-the-play-request-was-interru
+                        const promise = sound.play();
+                        if (promise !== undefined) {
+                            promise.then(_ => {
+                                // Autoplay started!
+                            }).catch(error => {
+                                // Uncaught (in promise) DOMException: play() failed because the user didn't interact with the document first.
+                                console.warn("Not playing notification sounds because user didn't interact with the document first.")
+                                // Autoplay was prevented.
+                                // Show a "Play" button so that user can start playback.
+                            });
+                        }
+                    } catch (e) {
+                        console.log('has user intereact')
+                        console.log(e)
+                    }
+                },
+                clearPomodorosLocalStorageHistory() {
+                    this.pomodoros.finished = this.pomodoros.finished.filter(pom => this.now.getTime() - new Date(pom.dateFinished).getTime() < 1000 * 60 * 60 * 24 * 30) // apaga os pomodoros de 30 dias atras
+                },
+                startPomodoro(minutesToRun, dialogMsgToShow, isSaveToLocalStorageHistory) {
+                    console.log('startPomodoro()')
+                    this.nextDatePomodoroFinishes_countDownToShow = '';
+                    this.isPomodoroTimerRunning = true;
+                    this.lastTimePomodoroStarted = new Date().getTime();
+                    this.pomodoroRunningMinutesValue = minutesToRun;
+                    let pomodoroRunningMiliseconds = this.pomodoroRunningMinutesValue * 1000 * 60
+                    this.nextDatePomodoroFinishes = new Date(this.lastTimePomodoroStarted + (pomodoroRunningMiliseconds));
+                    this.pomodoroFinishTimeoutID = setTimeout(() => {
+                        console.log('setTimout() running now --- ' + pomodoroRunningMiliseconds + ' passed.')
+                        if (this.lastTimePomodoroStarted !== 0) {
+                            this.finishPomodoro((isSaveToLocalStorageHistory ? true : false), Number(minutesToRun))
+                        }
+                    }, pomodoroRunningMiliseconds);
+                    this.dialogText = dialogMsgToShow;
+                    console.log('pomodoroFinishTimeoutID = ' + this.pomodoroFinishTimeoutID + ' | will finish at: ' + this.nextDatePomodoroFinishes)
+                },
+                startPomodoroPause() {
+                    console.log('startPomodoroPause()')
+                    this.isPomodoroPauseRunning = true;
+                    this.startPomodoro(this.pauseMinutesValue, 'Pausa acabou, vamos?', false, null)
+                },
+                finishPomodoro(saveToLocalStorageHistory, durationMinutes) {
+                    console.log('finishPomodoro(' + saveToLocalStorageHistory + ',' + durationMinutes + ')')
+                    this.isPomodoroTimerRunning = false;
+                    this.isPomodoroPauseRunning = false;
+                    this.isVisiblePomodoroEndDialog = true;
+                    this.lastTimePomodoroStarted = 0;
+                    this.pomodoroProgressValue = 0
+                    this.nextDatePomodoroFinishes_countDownToShow = '';
+                    this.playNotificationSound();
+                    if (saveToLocalStorageHistory) {
+                        this.pomodoros.finished.push({ dateFinished: new Date(), durationMinutes: durationMinutes, dialogTextAlert: this.dialogTextAlert })
+                        localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros'] = JSON.stringify(this.pomodoros);
+                    }
+                    this.clearPomodorosLocalStorageHistory();
+                    this.loadLastDaysPomodorosSummary();
+                },
+                reloadPomodoro() {
+                    console.log('reloadPomodoro()')
+                    this.isPomodoroTimerRunning = false;
+                    this.isPomodoroPauseRunning = false;
+                    this.pomodoroProgressValue = 0;
+                    this.lastTimePomodoroStarted = 0
+                    clearTimeout(this.pomodoroFinishTimeoutID)
+                },
+                deletePomodoroFromHistory(pomodoroIndex) {
+                    console.log('deletePomodoroFromHistory(' + pomodoroIndex + ')')
+                    this.pomodoros.finished.splice(pomodoroIndex, 1)
+                    localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros'] = JSON.stringify(this.pomodoros)
+                },
+                loadLastDaysPomodorosSummary() {
+                    let days = Array.from(new Set(this.pomodoros.finished.map(item => new Date(item.dateFinished).toString().substring(4, 15))))
+                    this.lastDaysPomodorosSummary = days.map(day => {
+                        return {
+                            day: day,
+                            totalMinutes: this.pomodoros.finished.filter(p => new Date(p.dateFinished).toString().substring(4, 15).includes(day)).map(item => item.durationMinutes).reduce((a, b) => a + b, 0)
+                        }
+                    })
+                },
+                moveTaskUp(taskArray, index) {
+                    console.log('moveTaskUp(' + index + ')')
+                    let tempTask = taskArray[index]
+                    taskArray[index] = taskArray[index - 1]
+                    taskArray[index - 1] = tempTask
+                    this.tasksChanged()
+                    this.backlogTasksChanged()
+                },
+                moveTaskDown(taskArray, index) {
+                    console.log('moveTaskDown(' + index + ')')
+                    let tempTask = taskArray[index]
+                    taskArray[index] = taskArray[index + 1]
+                    taskArray[index + 1] = tempTask
+                    this.tasksChanged()
+                    this.backlogTasksChanged()
+                },
+                moveTaskToTop(taskArray, index) {
+                    console.log('moveTaskToTop(' + index + ')')
+                    taskArray.unshift(taskArray.splice(index, 1)[0])
+                },
+                moveTaskToBottom(taskArray, index) {
+                    console.log('moveTaskToBottom(' + index + ')')
+                    taskArray.push(taskArray.splice(index, 1)[0])
+                },
+                copyTextToClipboard(text) {
+                    navigator.clipboard.writeText(text);
+                },
+                downloadJSON() {
+                    console.log('downloadJSON() --- START')
+                    let dataToBlob = this.allJSONDataStringedToImportExport;
+                    const blob = new Blob([dataToBlob])
+                    const url = window.URL.createObjectURL(blob)
+                    const link = document.createElement('a')
+                    link.href = url
+                    const fileName = `countdown-timer-${this.appName} ${new Date().toISOString().substring(0, 19).replaceAll(':', '-') + 'Z'}.json`
+                    link.setAttribute('download', fileName) //or any other extension
+                    document.body.appendChild(link)
+                    console.log(document.body)
+                    link.click()
+                    console.log('downloadJSON() --- END');
+                },
+                loadAllJSONDataStringedToImportExport() {
+                    console.log('loadAllJSONDataStringedToImportExport()')
+                    this.allJSONDataStringedToImportExport = JSON.stringify({ tasks: this.tasks, tasksBacklog: this.tasksBacklog, pomodoros: this.pomodoros })
+                },
+                importAllJSONData() {
+                    console.log('importAllJSONData()')
+                    try {
+                        let allJSONdata = JSON.parse(this.allJSONDataStringedToImportExport);
+                        this.tasks = allJSONdata.tasks
+                        this.tasksBacklog = allJSONdata.tasksBacklog
+                        this.pomodoros = allJSONdata.pomodoros
+                        localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros'] = JSON.stringify(this.pomodoros);
+                        this.date = new Date(this.pomodoros.dateEnd);
+                        this.tasksChanged();
+                        this.backlogTasksChanged();
+                        this.loadLastDaysPomodorosSummary();
+                    } catch (e) {
+                        alert('JSON import error');
+                        console.error(e)
+                    }
+                },
+                setNewDateEnd(yyyy, mm_0_11, dd_1_31) {
+                    console.log('setNewDateEnd()')
+                    let newDateToSet = new Date(this.$refs['yyyy'].internalValue, this.$refs['mm_0_11'].internalValue - 1, this.$refs['dd_1_31'].internalValue);
+                    console.log('newDateToSet =', newDateToSet)
+                    this.date = newDateToSet
+                    this.pomodoros.dateEnd = newDateToSet
+                    localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros'] = JSON.stringify(this.pomodoros);
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
