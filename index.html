@@ -282,8 +282,8 @@
                                             </v-menu>
                                             <v-sheet width="100%">
                                                 <v-text-field v-model="task.title" dense hide-details single-line autofocus :disabled="task.isDone"
-                                                    @keydown.enter.prevent="dialogTextAlert = task.title; isVisiblePomodoroTimer = true" @keydown.esc="sendTaskToBacklog(i);"
-                                                    @keydown.home.prevent="moveTaskToTop(tasks, i)" @keydown.end.prevent="moveTaskToBottom(tasks, i)">
+                                                    @keydown.enter.prevent="taskEnterKeydown(task.title)" @keydown.esc="sendTaskToBacklog(i);" @keydown.home.prevent="moveTaskToTop(tasks, i)"
+                                                    @keydown.end.prevent="moveTaskToBottom(tasks, i)">
                                                 </v-text-field>
                                             </v-sheet>
                                             <v-sheet>
@@ -321,7 +321,7 @@
                                     Hosted in a Linux <b>UBUNTU</b> dedicated server at <b>DIGITALOCEAN</b> cloud
                                     infrastructure. Version control by
                                     <b>GIT</b> and <b>GITHUB</b>. Reverse proxy with <b>NGINX</b>. <b>SSL</b>
-                                    certification with <b>CERTBOT</b> |
+                                    certification with <b>CERTBOT</b> | No data is collected from your device. | 
                                     screen: {{$vuetify.breakpoint.width}}x{{$vuetify.breakpoint.height}} | isMobile:
                                     {{isMobileLastStatus}}
                                 </v-sheet>
@@ -912,6 +912,12 @@
                     this.date = newDateToSet
                     this.pomodoros.dateEnd = newDateToSet
                     localStorage['countdownDateAppWithTaskList_' + this.appName + '_pomodoros'] = JSON.stringify(this.pomodoros);
+                },
+                taskEnterKeydown(taskTitle) {
+                    console.log('taskEnterKeydown(' + taskTitle + ')')
+                    this.dialogTextAlert = taskTitle;
+                    this.isVisiblePomodoroTimer = true;
+                    this.startPomodoro(this.pomodoroMinutesValue.value, 'Concluiu a tarefinha?', true)
                 }
             }
         })
