@@ -114,6 +114,9 @@
                                                             <v-radio label="10m" color="grey darken-2" :value="10"></v-radio>
                                                             <v-radio label="15m" color="grey darken-2" :value="15"></v-radio>
                                                             <v-radio label="20m" color="grey darken-2" :value="20"></v-radio>
+                                                            <v-radio label="30m" color="grey darken-2" :value="30"></v-radio>
+                                                            <v-radio label="45m" color="grey darken-2" :value="45"></v-radio>
+                                                            <v-radio label="60m" color="grey darken-2" :value="60"></v-radio>
                                                         </v-radio-group>
                                                     </v-sheet>
                                                 </v-menu>
@@ -321,7 +324,7 @@
                                     Hosted in a Linux <b>UBUNTU</b> dedicated server at <b>DIGITALOCEAN</b> cloud
                                     infrastructure. Version control by
                                     <b>GIT</b> and <b>GITHUB</b>. Reverse proxy with <b>NGINX</b>. <b>SSL</b>
-                                    certification with <b>CERTBOT</b> | No data is collected from your device. | 
+                                    certification with <b>CERTBOT</b> | No data is collected from your device. |
                                     screen: {{$vuetify.breakpoint.width}}x{{$vuetify.breakpoint.height}} | isMobile:
                                     {{isMobileLastStatus}}
                                 </v-sheet>
@@ -333,7 +336,7 @@
                         </v-hover>
                     </v-sheet>
                 </v-container>
-                <v-dialog v-model="isVisiblePomodoroEndDialog" width="500" persistent>
+                <v-dialog v-model="isVisiblePomodoroEndDialog" width="720" persistent>
                     <v-card>
                         <v-card-title class="text-h5 grey lighten-2">
                             tempo terminou
@@ -352,7 +355,10 @@
                             <v-btn color="grey darken-2" text @click="isVisiblePomodoroEndDialog = false; startPomodoro(pomodoroMinutesValue.value, this.dialogTextAlert, true);">
                                 Repetir mensagem e reiniciar
                             </v-btn>
-                            <v-btn color="primary" text @click="isVisiblePomodoroEndDialog = false; dialogTextAlert = '';">
+                            <v-btn color="grey darken-2" text @click="isVisiblePomodoroEndDialog = false; startPomodoroPause();">
+                                Pausa
+                            </v-btn>
+                            <v-btn color="primary" text @click="isVisiblePomodoroEndDialog = false;">
                                 Ok
                             </v-btn>
                         </v-card-actions>
